@@ -32,6 +32,7 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.searchPointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -53,12 +54,12 @@
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.searchPointsToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 48);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(146, 26);
             // 
             // searchPointsToolStripMenuItem
             // 
             this.searchPointsToolStripMenuItem.Name = "searchPointsToolStripMenuItem";
-            this.searchPointsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.searchPointsToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
             this.searchPointsToolStripMenuItem.Text = "Search points";
             this.searchPointsToolStripMenuItem.Click += new System.EventHandler(this.searchPointsToolStripMenuItem_Click);
             // 
@@ -84,6 +85,7 @@
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem searchPointsToolStripMenuItem;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
 

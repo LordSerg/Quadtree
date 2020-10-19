@@ -16,39 +16,68 @@ namespace QuadTree
         {
             InitializeComponent();
         }
+        bool smth = true;//true - quadtree algorythm
+                         //false - linear algorythm
         Bitmap b;
         QuadTree q;
+        P[] pOiNtS;
+        int n = 0;//point counter
+        Graphics g;
         private void pictureBox1_Click(object sender, EventArgs e)
         {
+            n++;
+            toolTip1.SetToolTip(pictureBox1,n.ToString());
             q.insert(new P(Cursor.Position.X, Cursor.Position.Y));
             pictureBox1.Image = b;
         }
-        Graphics g,g2;
         private void Form1_Load(object sender, EventArgs e)
         {
             b = new Bitmap(pictureBox1.Width, pictureBox1.Height);
             g = Graphics.FromImage(b);
-            //for (int i = 0; i < 100; i++)
-            //    p[i] = new Point(r.Next(pictureBox1.Width),r.Next(pictureBox1.Height));
-            q = new QuadTree(new Rectangle(0, 0, pictureBox1.Width, pictureBox1.Height),g);
-            to_do = false;
-            //Random r = new Random();
-            //for (int i = 1; i < 100; i++)
-            //    if(q.insert(new P/*(i*100,i*100)*/(r.Next(pictureBox1.Width), r.Next(pictureBox1.Height))))
-            //    {//визуализация вставки
-            //        pictureBox1.Image = b;
-            //    }
-            //for(int i = 0; i < 100; i++)
-            //    if( )
+            Random r = new Random();
+
+            if (smth)
+            {
+                q = new QuadTree(new Rectangle(0, 0, pictureBox1.Width, pictureBox1.Height), g);
+                to_do = false;
+                for (int i = 0; i < 20000; i++, n++)
+                    q.insert(new P(r.Next(pictureBox1.Width), r.Next(pictureBox1.Height)));
+            }
+            else
+            {
+                pOiNtS = new P[20000];
+                for (int i = 0; i < 20000; i++)
+                {
+                    pOiNtS[i] = new P(r.Next(pictureBox1.Width), r.Next(pictureBox1.Height));
+                    g.FillEllipse(Brushes.Red, pOiNtS[i].X - 5, pOiNtS[i].Y - 5, 10, 10);
+                } 
+            }
+            pictureBox1.Image = b;
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {//поиск точек, принадлижащих прямоугольнику
             if (to_do)
             {
-                Rectangle search = new Rectangle(Cursor.Position.X - 50, Cursor.Position.Y - 50, 100, 100);
-
-                q.queryRange(search, null);
+                Rectangle search = new Rectangle(Cursor.Position.X - 150, Cursor.Position.Y - 150, 300, 300);
+                g.Clear(Color.White);
+                if (smth)
+                {
+                    List<P> a = q.queryRange(search);
+                    foreach (P p in a)
+                    {
+                        g.FillEllipse(Brushes.Red, p.X - 5, p.Y - 5, 10, 10);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < 20000; i++)
+                    {
+                        if (search.containsPoint(pOiNtS[i]))
+                            g.FillEllipse(Brushes.Red, pOiNtS[i].X - 5, pOiNtS[i].Y - 5, 10, 10);
+                    }
+                }
+                g.DrawRectangle(Pens.Red, search.x, search.y, search.w, search.h);
                 pictureBox1.Image = b;
             }
         }
@@ -56,22 +85,13 @@ namespace QuadTree
         private void searchPointsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (searchPointsToolStripMenuItem.Text == "Search points")
-            {
                 searchPointsToolStripMenuItem.Text = "Put points";
-                g2 = q.gr;
-                pictureBox1.Image = b;
-            }
             else
-            {
                 searchPointsToolStripMenuItem.Text = "Search points";
-                g = g2;
-                q.gr = g2;
-                pictureBox1.Image = b;
-            }
             to_do = !to_do;
         }
     }
-    struct P//point
+    class P//point
     {
         public float X, Y;
         public P(float x,float y)
@@ -84,7 +104,6 @@ namespace QuadTree
     struct Rectangle
     {
         public float w, h, x, y;
-        //P center, halfDemention;
         public Rectangle(float X, float Y, float width, float height)
         {
             w = width;
@@ -101,26 +120,18 @@ namespace QuadTree
         }
         public bool intersectsRectangle(Rectangle other)
         {//пересекает ли данный прямоугольник другой
-            if ((x-other.x<other.w||other.x-x<w)
-                &&(y-other.y<other.h||other.y-y<h))
-            {
-                return true;
-            }
-            else
-                return false;
+            return (x - other.x < other.w || other.x - x < w) && (y - other.y < other.h || other.y - y < h);
         }
     }
     class QuadTree
     {
-        
-        const int num_of_points = 1;
+        const int num_of_points = 3;//допустимое количество точек в одном квадранте
         Rectangle boundary;
-        //public Bitmap b;
         public Graphics gr;
-        //List <P> points=new List<P>();//маассив точек, которые способен хранить 1 квадрант
+        List <P> points = new List<P>();//маассив точек, которые способен хранить 1 квадрант
         //но так как у нас всего одна точка, то
-        P point;
-        bool has_point = false;
+        //P point;
+        //bool has_point = false;
         //int w, h, x, y;
         QuadTree northWest;
         QuadTree northEast;
@@ -129,38 +140,58 @@ namespace QuadTree
         public QuadTree(Rectangle bndr,Graphics g)
         {
             boundary = bndr;
-            //b = new Bitmap((int)bndr.w, (int)bndr.h);
             gr = g;
+            points = new List<P>();
         }
         public bool insert(P pnt)
         {
             if (!boundary.containsPoint(pnt))
                 return false;
 
-            if (!has_point)
+            if (points.Count < num_of_points)
             {
                 gr.FillEllipse(Brushes.Red, pnt.X - 5, pnt.Y - 5, 10, 10);
-                point = pnt;
-                has_point = true;
+                points.Add(pnt);
                 return true;
             }
 
             if (northWest == null)
-                subdivide();
-
-            if (northWest.insert(pnt)&& northWest.insert(point))
+                subdivide();//передаем точки в дочерние квадранты
+            for (int i=0;i< points.Count;i++)
+            {
+                if (points[i] != null)
+                {
+                    if (!northWest.insert(points[i]))
+                    {
+                        if (!northEast.insert(points[i]))
+                        {
+                            if (!southWest.insert(points[i]))
+                            {
+                                if (!southEast.insert(points[i])) { }
+                                else
+                                    points[i] = null;
+                            }
+                            else points[i] = null;
+                        }
+                        else points[i] = null;
+                    }
+                    else points[i] = null;
+                }
+            }
+            //вставляем новую точку
+            if (northWest.insert(pnt))
                 return true;
-            if (northEast.insert(pnt)&& northEast.insert(point))
+            if (northEast.insert(pnt))
                 return true;
-            if (southWest.insert(pnt)&& southWest.insert(point))
+            if (southWest.insert(pnt))
                 return true;
-            if (southEast.insert(pnt)&& southEast.insert(point))
+            if (southEast.insert(pnt))
                 return true;
 
             return false;
         }
         void subdivide()
-        {
+        {//разделить квадрант на подквадранты
             gr.DrawRectangle(Pens.Black, boundary.x, boundary.y, boundary.w / 2, boundary.h / 2);
             gr.DrawRectangle(Pens.Black, boundary.x + (boundary.w / 2), boundary.y, boundary.w / 2, boundary.h / 2);
             gr.DrawRectangle(Pens.Black, boundary.x, boundary.y + (boundary.h / 2), boundary.w / 2, boundary.h / 2);
@@ -172,64 +203,26 @@ namespace QuadTree
             southEast = new QuadTree(new Rectangle(boundary.x + (boundary.w / 2), boundary.y + (boundary.h / 2), boundary.w / 2, boundary.h / 2),gr);
 
         }
-        public void Show(Rectangle r)
-        {
-
-        }
-        public P[] queryRange(Rectangle range,Graphics g)
+        public List<P> queryRange(Rectangle range)
         {//поиск точек, входящих в некоторое поле "range"
-            /*P[] pointsInRange=null;
+            List<P> answer = new List<P>();
             if (!boundary.intersectsRectangle(range))
-                return pointsInRange;
-            for(int i=0;i<points.Length;i++)
-            {
-                if (range.containsPoint(points[i]))
-                    pointsInRange.Append(points[i]);
-            }
+                return answer;
             if (northWest == null)
-                return pointsInRange;
-
-            //pointsInRange = points;
-            return pointsInRange;
-            */
-            if (g != null)
-                gr = g;
-            else
-                gr.Clear(Color.White);
-            if (!boundary.intersectsRectangle(range))
             {
-                return null;
+                foreach (P p in points)
+                {
+                    if (p != null && range.containsPoint(p))
+                        answer.Add(p);
+                }
+                return answer;
             }
-            if (range.containsPoint(point))
-                gr.FillEllipse(Brushes.Red, point.X - 5, point.Y - 5, 10, 10);
-            //if (!has_point)
-            //    return null;
-            //else
-            //{
-                
-            //}
-            if (northWest == null)
-                return null;
-            northWest.queryRange(range,gr);
-            northEast.queryRange(range,gr);
-            southEast.queryRange(range,gr);
-            southWest.queryRange(range,gr);
-
-            gr.DrawRectangle(Pens.Red, range.x, range.y, range.w, range.h);
-            return null;
-
+            answer.AddRange(northWest.queryRange(range));
+            answer.AddRange(northEast.queryRange(range));
+            answer.AddRange(southEast.queryRange(range));
+            answer.AddRange(southWest.queryRange(range));
+            return answer;
         }
-        //public QuadTree(Point P)
-        //{
-        //    if (contains(P))
-        //    {
-
-        //        QuadTree r_u = new QuadTree(P);
-        //        QuadTree r_d = new QuadTree(P);
-        //        QuadTree l_u = new QuadTree(P);
-        //        QuadTree l_d = new QuadTree(P);
-        //    }
-        //}
     }
 }
 
