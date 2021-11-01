@@ -16,19 +16,24 @@ namespace QuadTree
         {
             InitializeComponent();
         }
-        bool smth = true;//true - quadtree algorythm
-                         //false - linear algorythm
+        bool serach_algo = true;//true - quadtree algorythm
+                                //false - linear algorythm
         Bitmap b;
         QuadTree q;
-        P[] pOiNtS;
-        int n = 0;//point counter
+        List<P> pOiNtS;
         Graphics g;
+        int n = 1000;//num of points
+        bool is_serching;
         private void pictureBox1_Click(object sender, EventArgs e)
         {
-            n++;
-            toolTip1.SetToolTip(pictureBox1,n.ToString());
-            q.insert(new P(Cursor.Position.X, Cursor.Position.Y));
-            pictureBox1.Image = b;
+            if (!is_serching)
+            {
+                n++;
+                toolTip1.SetToolTip(pictureBox1, n.ToString());
+                pOiNtS.Add(new P(Cursor.Position.X, Cursor.Position.Y));
+                q.insert(pOiNtS[n - 1]);
+                pictureBox1.Image = b;
+            }
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -36,33 +41,27 @@ namespace QuadTree
             g = Graphics.FromImage(b);
             Random r = new Random();
 
-            if (smth)
+            pOiNtS = new List<P>();
+            for (int i = 0; i < n; i++)
             {
-                q = new QuadTree(new Rectangle(0, 0, pictureBox1.Width, pictureBox1.Height), g);
-                to_do = false;
-                for (int i = 0; i < 20000; i++, n++)
-                    q.insert(new P(r.Next(pictureBox1.Width), r.Next(pictureBox1.Height)));
+                pOiNtS.Add(new P(r.Next(pictureBox1.Width), r.Next(pictureBox1.Height)));
+                //g.FillEllipse(Brushes.Red, pOiNtS[i].X - 5, pOiNtS[i].Y - 5, 10, 10);
             }
-            else
-            {
-                pOiNtS = new P[20000];
-                for (int i = 0; i < 20000; i++)
-                {
-                    pOiNtS[i] = new P(r.Next(pictureBox1.Width), r.Next(pictureBox1.Height));
-                    g.FillEllipse(Brushes.Red, pOiNtS[i].X - 5, pOiNtS[i].Y - 5, 10, 10);
-                } 
-            }
+            q = new QuadTree(new Rectangle(0, 0, pictureBox1.Width, pictureBox1.Height), g);
+            for (int i = 0; i < n; i++)
+                q.insert(pOiNtS[i]);
+                //q.insert(new P(r.Next(pictureBox1.Width), r.Next(pictureBox1.Height)));
             pictureBox1.Image = b;
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {//поиск точек, принадлижащих прямоугольнику
-            if (to_do)
-            {
+            if (is_serching)
+            {//искать
                 Rectangle search = new Rectangle(Cursor.Position.X - 150, Cursor.Position.Y - 150, 300, 300);
                 g.Clear(Color.White);
-                if (smth)
-                {
+                if (serach_algo)
+                {//Qtree algorythm
                     List<P> a = q.queryRange(search);
                     foreach (P p in a)
                     {
@@ -70,8 +69,8 @@ namespace QuadTree
                     }
                 }
                 else
-                {
-                    for (int i = 0; i < 20000; i++)
+                {//brute force algorythm
+                    for (int i = 0; i < n; i++)
                     {
                         if (search.containsPoint(pOiNtS[i]))
                             g.FillEllipse(Brushes.Red, pOiNtS[i].X - 5, pOiNtS[i].Y - 5, 10, 10);
@@ -81,14 +80,24 @@ namespace QuadTree
                 pictureBox1.Image = b;
             }
         }
-        bool to_do;
         private void searchPointsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (searchPointsToolStripMenuItem.Text == "Search points")
                 searchPointsToolStripMenuItem.Text = "Put points";
             else
                 searchPointsToolStripMenuItem.Text = "Search points";
-            to_do = !to_do;
+            is_serching = !is_serching;
+            g.Clear(Color.White);
+            for (int i = 0; i < n; i++)
+            {
+                g.FillEllipse(Brushes.Red, pOiNtS[i].X - 5, pOiNtS[i].Y - 5, 10, 10);
+            }
+            pictureBox1.Image = b;
+        }
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            serach_algo = radioButton1.Checked;
         }
     }
     class P//point
